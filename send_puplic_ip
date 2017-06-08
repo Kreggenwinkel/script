@@ -1,0 +1,16 @@
+APIKEY=MyApiKey
+
+declare dir=/var/log/scriptlog/public_ip  # überprüft ob der Ordner schon vorhanden ist oder nicht und erstel diesen
+if [ ! -e $dir ]; then
+mkdir $dir; fi
+
+PubIP=$(curl -s http://checkip.dyndns.org/ | grep -o "[[:digit:].]\+" > /var/log/scriptlog/public_ip/new_ip)  # Checkt die aktuelle Public IP und schreibt sie in eine Datei
+
+DIFF=$(diff /var/log/scriptlog/public_ip/new_ip /var/log/scriptlog/public_ip/last_ip)
+if [ "$DIFF" != "" ]
+then
+echo "Public_IP_Chaged!"
+curl -u $APIKEY: https://api.pushbullet.com/v2/pushes -d type=note -d title="NewPublicIP" -d body="$DIFF"
+fi
+
+cp /var/log/scriptlog/public_ip/new_ip /var/log/scriptlog/public_ip/last_ip                     # Kopiert die letzte Public Ip Addresse

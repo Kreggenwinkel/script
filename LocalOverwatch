@@ -1,0 +1,26 @@
+#!/bin/bash
+
+d=`date +%Y-%m-%d-%H-%M`                                        # Variable um später immer in neue Datei zu schreiben (Das Aktuelle Datum mit Uhrzeit)
+od=`date +%Y-%m-%d`                                             # Variable als Datum
+yd=`date -d "-1 day" +"%Y-%m-%d"`                               # Variable als Datum -1 Tag (wie bei der Variable "$od" nur mit -1day
+sSO=_sSO                                                        # Variable um die -sS -O Abfrage extra zu Speichern
+sP=_sP
+sh=_short
+APIKEY=MyApiKey
+
+declare dir=/var/log/scriptlog/netwache/$od                                # überprüft ob der Ordner schon vorhanden ist oder nicht und erstellt en
+if [ ! -e $dir ]; then                                          # wenn dieser nicht vorhanden ist
+mkdir $dir; fi
+
+ausgabe=$(nmap -sP 192.168.0.0/24 > /var/log/scriptlog/netwache/$od/$d$sP.log)            # mach den nmap befehl und schreibs in die Datei
+
+cat /var/log/scriptlog/netwache/$od/$d$sP.log | grep -v "Host is up" | grep report | sed 's/Nmap scan report for//g' > /var/log/scriptlog/netwache/$od/$d$sP$sh.log                  # Grept die Datei nur nach der IP Adresse und dem Hostname und speichert sie in eine neue Datei ab
+
+DIFF=$(diff /var/log/scriptlog/netwache/$od/$d$sP$sh.log /var/log/scriptlog/netwache/$od/lasta.txt)
+if [ "$DIFF" != "" ]
+then
+echo "veraenderung!!"
+curl -u $APIKEY: https://api.pushbullet.com/v2/pushes -d type=note -d title="Netzwerk!" -d body="$DIFF"
+fi
+
+cp /var/log/scriptlog/netwache/$od/$d$sP$sh.log /var/log/scriptlog/netwache/$od/lasta.txt                     # Kopiert die gegrepte Datei in die lasta.txt

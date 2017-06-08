@@ -1,4 +1,4 @@
-# script
+# Info Sheet for my scripts
 
 Some of my script for Testing doing stuff and so on 
 
